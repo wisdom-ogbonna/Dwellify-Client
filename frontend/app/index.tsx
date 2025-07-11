@@ -29,12 +29,19 @@ export default function Index() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
 
-  const handleScroll = (event) => {
+  const handleScroll = (event: { nativeEvent: { contentOffset: { x: number; }; }; }) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / width);
     setCurrentIndex(index);
   };
 
-  const renderItem = ({ item }) => (
+  type Slide = {
+    key: string;
+    title: string;
+    description: string;
+    image: any;
+  };
+
+  const renderItem = ({ item }: { item: Slide }) => (
     <View style={styles.slide}>
       <Image source={item.image} style={styles.image} resizeMode="cover" />
       <View style={styles.overlay}>
