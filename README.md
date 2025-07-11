@@ -58,3 +58,10 @@ my-app/
 ├── babel.config.js              # Babel config
 ├── package.json
 └── README.md
+
+Primary  — #00BFA6
+Button Text — #FFFFFF
+Secondary Text — #F5F5F5
+Icon Background — #263238
+Call-to-Action Accent — #F50057
+Primary-text — #000000
