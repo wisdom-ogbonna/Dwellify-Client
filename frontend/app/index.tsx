@@ -1,50 +1,134 @@
-// app/index.tsx
-import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, Dimensions, FlatList, Image, Pressable } from "react-native";
+import React, { useRef, useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Dimensions,
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  StatusBar,
+  Image,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { COLORS } from "./constants/colors";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
-const slides = [
+// Use HTTPS stock photos for real estate look
+const SLIDES = [
   {
-    key: '1',
-    title: 'Looking for a house?',
-    description: 'Find your dream property quickly and easily.',
-    image: require("../assets/images/undraw_destination_fkst.svg"),
+    title: "Find Your Next Home",
+    description: "Browse beautiful listings across Nigeria.",
+    image: {
+      uri: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    },
   },
   {
-    key: '2',
-    title: 'Connect with reliable agents',
-    description: 'Chat with trusted professionals anytime.',
-    image: require("../assets/images/undraw_destination_fkst.svg"),
+    title: "Chat With Verified Agents",
+    description: "Connect and book property tours fast.",
+    image: {
+      uri: "https://images.unsplash.com/photo-1679117349740-c46c819d0373?q=80&w=737&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
   },
   {
-    key: '3',
-    title: 'Make it happen',
-    description: 'Your new home is just a few taps away.',
-    image: require("../assets/images/undraw_destination_fkst.svg"),
+    title: "Secure Deals Easily",
+    description: "Negotiate and close—all within the app.",
+    image: {
+      uri: "https://images.unsplash.com/photo-1677154488509-fe97beb93ab2?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
   },
 ];
 
+
 export default function Index() {
+  const flatListRef = useRef<FlatList>(null);
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
 
-  const handleScroll = (event: { nativeEvent: { contentOffset: { x: number; }; }; }) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / width);
-    setCurrentIndex(index);
+  // Animation per slide
+  const [progressWidths] = useState(() =>
+    SLIDES.map(() => new Animated.Value(0))
+  );
+  const [imageAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    startImageAnimation();
+    startProgressAnimation(currentIndex);
+  }, [currentIndex]);
+
+  const startImageAnimation = () => {
+    imageAnim.setValue(0);
+    Animated.timing(imageAnim, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
   };
 
-  type Slide = {
-    key: string;
-    title: string;
-    description: string;
-    image: any;
+  const startProgressAnimation = (index: number) => {
+    // Reset all
+    progressWidths.forEach((anim, i) => {
+      anim.stopAnimation();
+      if (i < index) anim.setValue(1);
+      else anim.setValue(0);
+    });
+
+    if (index >= SLIDES.length - 1) {
+      progressWidths[index].setValue(1);
+      return;
+    }
+
+    Animated.timing(progressWidths[index], {
+      toValue: 1,
+      duration: 4000,
+      easing: Easing.linear,
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      if (finished && index < SLIDES.length - 1) {
+        flatListRef.current?.scrollToIndex({ index: index + 1, animated: true });
+      }
+    });
   };
 
-  const renderItem = ({ item }: { item: Slide }) => (
+  const onScroll = (event: any) => {
+    const x = event.nativeEvent.contentOffset.x;
+    const index = Math.round(x / width);
+    if (index !== currentIndex) setCurrentIndex(index);
+  };
+
+  const onPressButton = () => {
+    if (currentIndex < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: SLIDES.length - 1, animated: true });
+    } else {
+      router.push("./login");
+    }
+  };
+
+  const renderSlide = ({ item }: { item: typeof SLIDES[0] }) => (
     <View style={styles.slide}>
-      <Image source={item.image} style={styles.image} resizeMode="cover" />
-      <View style={styles.overlay}>
+      <Animated.Image
+        source={item.image}
+        style={[
+          styles.image,
+          {
+            opacity: imageAnim,
+            transform: [
+              {
+                scale: imageAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1.1, 1],
+                }),
+              },
+            ],
+          },
+        ]}
+        resizeMode="cover"
+      />
+
+      <View style={styles.textOverlay}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
       </View>
@@ -53,37 +137,61 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      <View style={styles.header}>
+        <Image
+          source={require("../assets/images/dwellify-black-nobg.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
+        <View style={styles.progressContainer}>
+          {progressWidths.map((anim, idx) => (
+            <View key={idx} style={styles.progressTrack}>
+              <Animated.View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ["0%", "100%"],
+                    }),
+                  },
+                ]}
+              />
+            </View>
+          ))}
+        </View>
+      </View>
+
       <FlatList
-        data={slides}
+        ref={flatListRef}
+        data={SLIDES}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        ref={flatListRef}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.key}
+        bounces={false}
+        onScroll={onScroll}
+        renderItem={renderSlide}
+        keyExtractor={(_, i) => String(i)}
+        getItemLayout={(_, i) => ({
+          length: width,
+          offset: width * i,
+          index: i,
+        })}
       />
-
-      <View style={styles.pagination}>
-        {slides.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              currentIndex === index && styles.activeDot,
-            ]}
-          />
-        ))}
-      </View>
 
       <Pressable
         style={({ pressed }) => [
           styles.button,
           pressed && styles.buttonPressed,
         ]}
-        onPress={() => console.log('Navigate to Login')}
+        onPress={onPressButton}
       >
-        <Text style={styles.buttonText}>LOG IN</Text>
+        <Text style={styles.buttonText}>
+          {currentIndex === SLIDES.length - 1 ? "LOG IN" : "GET STARTED"}
+        </Text>
       </Pressable>
     </View>
   );
@@ -92,77 +200,98 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  header: {
+    position: "absolute",
+    top: 40,
+    width,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  logo: {
+    width: 200,
+    height: 60,
+    marginBottom: 10,
+  },
+  progressContainer: {
+    flexDirection: "row",
+    width: width * 0.85,
+    height: 2,
+    marginTop: 6,
+  },
+  progressTrack: {
+    flex: 1,
+    backgroundColor: COLORS.INACTIVE_DOT,
+    marginHorizontal: 2,
+    borderRadius: 1,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: COLORS.PRIMARY,
   },
   slide: {
     width,
     height,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: COLORS.BACKGROUND,
   },
   image: {
     width,
     height,
     position: "absolute",
+    top: 0,
+    left: 0,
   },
-  overlay: {
+  textOverlay: {
     position: "absolute",
-    bottom: 100,
-    width: width * 0.9,
-    padding: 20,
-    backgroundColor: "rgba(245,245,245,0.9)",
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#000",
+    bottom: height * 0.2,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    width: "85%",
     alignItems: "center",
   },
   title: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "bold",
-    color: "#000",
+    color: COLORS.BUTTON_TEXT,
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   description: {
     fontSize: 18,
-    color: "#333",
+    color: COLORS.SECONDARY_TEXT,
     textAlign: "center",
-  },
-  pagination: {
-    position: "absolute",
-    bottom: 60,
-    flexDirection: "row",
-    alignSelf: "center",
-  },
-  dot: {
-    height: 10,
-    width: 10,
-    backgroundColor: "#888",
-    marginHorizontal: 5,
-    marginBottom: 30,
-    borderRadius: 5,
-  },
-  activeDot: {
-    backgroundColor: "#00bfa6",
-    width: 20,
+    lineHeight: 24,
   },
   button: {
     position: "absolute",
-    bottom: 10,
+    bottom: 40,
     alignSelf: "center",
-    backgroundColor: '#00bfa6',
-    paddingVertical: 15,
-    paddingHorizontal: 35,
-    borderRadius: 10,
-    borderWidth: 2,
+    backgroundColor: COLORS.PRIMARY,
+    paddingVertical: 16,
+    paddingHorizontal: 42,
+    borderRadius: 14,
+    elevation: 5,
   },
   buttonPressed: {
-    backgroundColor: '#009e8c',
+    backgroundColor: COLORS.CTA_ACCENT,
   },
   buttonText: {
-    color: "#000",
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
+    color: COLORS.BUTTON_TEXT,
   },
+  imageOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width,
+  height,
+  backgroundColor: "rgba(0,0,0,0.35)",
+},
 });

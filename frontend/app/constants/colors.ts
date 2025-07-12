@@ -1,0 +1,12 @@
+// constants/colors.ts
+export const COLORS = {
+  PRIMARY: '#00BFA6',
+  BUTTON_TEXT: '#FFFFFF',
+  SECONDARY_TEXT: '#F5F5F5',
+  ICON_BG: '#263238',
+  CTA_ACCENT: '#F50057',
+  PRIMARY_TEXT: '#000000',
+  BACKGROUND: '#000000',
+  OVERLAY_BG: 'rgba(245,245,245,0.95)',
+  INACTIVE_DOT: '#888888',
+};
