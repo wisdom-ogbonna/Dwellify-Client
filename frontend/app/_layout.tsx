@@ -1,35 +1,26 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { ImageBackground, StyleSheet, View } from "react-native";
+import { StyleSheet, View, StatusBar } from "react-native";
+import { COLORS } from "./constants/colors";
 
 export default function RootLayout() {
   return (
-    
-      <View style={styles.overlay}>
-        <Stack
-          screenOptions={{
-            headerTransparent: true,
-            headerTitleStyle: styles.headerTitle,
-            headerTintColor: "#fff",
-            title: '',
-          }}
-        />
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.BACKGROUND} />
+
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: COLORS.BACKGROUND },
+        }}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  container: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,1)",
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 20,
+    backgroundColor: COLORS.BACKGROUND,
   },
 });
