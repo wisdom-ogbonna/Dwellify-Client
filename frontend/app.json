@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/dwellify-black.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.golden7ace.dwellify"
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +39,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a403e41d-16ef-49ce-a554-3b795ca0cc92"
+      }
     }
   }
 }
