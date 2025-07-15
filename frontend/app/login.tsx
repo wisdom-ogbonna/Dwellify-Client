@@ -155,9 +155,11 @@ const styles = StyleSheet.create({
   prefix: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.INACTIVE_DOT,
+    backgroundColor: COLORS.BACKGROUND,
     paddingHorizontal: 10,
     gap: 6,
+    borderRightWidth: 1,
+    borderColor: COLORS.INACTIVE_DOT,
   },
   prefixText: {
     fontSize: 16,

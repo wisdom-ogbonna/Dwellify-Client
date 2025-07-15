@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": " ",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,7 +31,8 @@
           "image": "./assets/images/dwellify-black.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "title": ""
         }
       ]
     ],
