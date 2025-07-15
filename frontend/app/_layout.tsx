@@ -6,12 +6,12 @@ import { COLORS } from "./constants/colors";
 export default function RootLayout() {
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.BACKGROUND} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.BUTTON_TEXT} />
 
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: COLORS.BACKGROUND },
+          contentStyle: { backgroundColor: COLORS.BUTTON_TEXT },
         }}
       />
     </View>
@@ -21,6 +21,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.BUTTON_TEXT,
   },
 });

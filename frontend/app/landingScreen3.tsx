@@ -3,7 +3,7 @@ import { Text, View, ImageBackground, StyleSheet, Dimensions, Image, Pressable }
 export default function Index() {
   return (
     <ImageBackground
-      source={require("../assets/images/undraw_destination_fkst.svg")}
+      source={require("../assets/images/message.png")}
       style={styles.background}
       imageStyle={styles.image}
       resizeMode="cover"
