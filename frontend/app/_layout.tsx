@@ -6,7 +6,7 @@ import { COLORS } from "./constants/colors";
 export default function RootLayout() {
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.BUTTON_TEXT} />
+      <StatusBar translucent barStyle="dark-content" backgroundColor={"transparent"} />
 
       <Stack
         screenOptions={{

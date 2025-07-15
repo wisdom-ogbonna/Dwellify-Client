@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "./constants/colors";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
+const AUTO_SCROLL_INTERVAL = 4000;
 
 const SLIDES = [
   {
@@ -38,33 +40,67 @@ export default function Index() {
   const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
   const [currentIndex, setCurrentIndex] = useState(0);
+  const progressAnims = useRef(SLIDES.map(() => new Animated.Value(0))).current;
+
+  const autoAdvance = (index: number) => {
+    if (index < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: index + 1, animated: true });
+      setCurrentIndex(index + 1);
+    }
+  };
+
+  useEffect(() => {
+    progressAnims.forEach((anim, i) => {
+      if (i < currentIndex) {
+        anim.setValue(1);
+      }
+    });
+
+    if (currentIndex === SLIDES.length - 1) {
+      
+      progressAnims[currentIndex].setValue(1);
+      return;
+    }
+
+    progressAnims[currentIndex].setValue(0);
+    Animated.timing(progressAnims[currentIndex], {
+      toValue: 1,
+      duration: AUTO_SCROLL_INTERVAL,
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      if (finished) autoAdvance(currentIndex);
+    });
+  }, [currentIndex]);
 
   const onScroll = (event: any) => {
     const x = event.nativeEvent.contentOffset.x;
     const index = Math.round(x / width);
-    if (index !== currentIndex) setCurrentIndex(index);
+    if (index !== currentIndex) {
+      setCurrentIndex(index);
+    }
   };
 
   const onPressButton = () => {
     if (currentIndex < SLIDES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: SLIDES.length - 1, animated: true });
+      setCurrentIndex(SLIDES.length - 1);
     } else {
       router.push("./login");
     }
   };
 
   const onNext = () => {
-    flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+    if (currentIndex < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+      setCurrentIndex(currentIndex + 1);
+    }
   };
 
   const renderSlide = ({ item }: { item: typeof SLIDES[0] }) => (
     <View style={styles.slide}>
-      <Image
-        source={item.image}
-        style={styles.illustration}
-        resizeMode="contain"
-      />
+      <Image source={item.image} style={styles.illustration} resizeMode="contain" />
       <View style={styles.textOverlay}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
@@ -76,19 +112,30 @@ export default function Index() {
     <>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+
         <View style={[styles.progressContainer, { marginTop: insets.top + 8 }]}>
-          {SLIDES.map((_, idx) => (
-            <View
-              key={idx}
-              style={[
-                styles.progressSegment,
-                idx === currentIndex
-                  ? styles.progressSegmentActive
-                  : styles.progressSegmentInactive,
-              ]}
-            />
+          {progressAnims.map((anim, idx) => (
+            <View key={idx} style={styles.progressTrack}>
+              <Animated.View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ["0%", "100%"],
+                    }),
+                  },
+                ]}
+              />
+            </View>
           ))}
         </View>
+
+        <Image
+          source={require("../assets/images/dwellify-black-nobg.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
         <FlatList
           ref={flatListRef}
@@ -119,7 +166,7 @@ export default function Index() {
               <MaterialIcons
                 name={currentIndex === SLIDES.length - 1 ? "check-circle-outline" : "skip-next"}
                 size={22}
-                color={COLORS.BUTTON_TEXT}
+                color={COLORS.BACKGROUND}
               />
               <Text style={styles.buttonText}>
                 {currentIndex === SLIDES.length - 1 ? "GET STARTED" : "SKIP"}
@@ -139,11 +186,9 @@ export default function Index() {
                 <MaterialIcons
                   name="arrow-forward"
                   size={22}
-                  color={COLORS.BUTTON_TEXT}
+                  color={COLORS.BACKGROUND}
                 />
-                <Text style={styles.buttonText}>
-                  NEXT
-                </Text>
+                <Text style={styles.buttonText}>NEXT</Text>
               </View>
             </Pressable>
           )}
@@ -160,29 +205,37 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     flexDirection: "row",
-    width: width * 0.6,
-    height: 4,
+    width: width * 0.85,
+    height: 6,
     alignSelf: "center",
-    justifyContent: "space-between",
-    alignItems: "center",
+    position: "absolute",
+    zIndex: 999,
   },
-  progressSegment: {
+  progressTrack: {
     flex: 1,
-    height: 4,
-    borderRadius: 2,
-    marginHorizontal: 2,
-  },
-  progressSegmentInactive: {
     backgroundColor: COLORS.INACTIVE_DOT,
+    marginHorizontal: 2,
+    borderRadius: 3,
+    overflow: "hidden",
+    height: 6,
   },
-  progressSegmentActive: {
+  progressBar: {
+    height: "100%",
     backgroundColor: COLORS.PRIMARY,
+  },
+  logo: {
+    position: "absolute",
+    top: 20,
+    alignSelf: "center",
+    width: 300,
+    height: 170,
+    zIndex: 999,
   },
   slide: {
     width,
-    height,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 100,
     backgroundColor: COLORS.BACKGROUND,
     paddingHorizontal: 24,
   },
@@ -211,23 +264,25 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: COLORS.PRIMARY,
     paddingVertical: 16,
-    paddingHorizontal: 32,
     borderRadius: 14,
     elevation: 5,
     marginHorizontal: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    width: width * 0.4,
   },
   buttonPressed: {
     backgroundColor: COLORS.CTA_ACCENT,
   },
   buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: COLORS.BUTTON_TEXT,
+    color: COLORS.BACKGROUND,
     marginLeft: 8,
   },
   controlDiv: {
@@ -236,6 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     bottom: 10,
-    right: "20%",
+    left: 0,
+    right: 0,
   },
 });
