@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { COLORS } from "./constants/colors";
+import COLORS from "./constants/colors";
 
 export default function OTP() {
   const router = useRouter();

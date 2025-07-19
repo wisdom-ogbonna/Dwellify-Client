@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import CountryFlag from "react-native-country-flag";
 import { useRouter } from "expo-router";
-import { COLORS } from "./constants/colors";
+import COLORS from "./constants/colors";
 
 export default function Login() {
   const router = useRouter();

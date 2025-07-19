@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "./constants/colors";
+import COLORS from "./constants/colors";
 
 export default function OfflineScreen({ onRetry }: { onRetry: () => void }) {
   return (

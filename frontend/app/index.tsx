@@ -9,11 +9,12 @@ import {
   StyleSheet,
   StatusBar,
   Animated,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { COLORS } from "./constants/colors";
+import COLORS from "./constants/colors";
 
 const { width } = Dimensions.get("window");
 const AUTO_SCROLL_INTERVAL = 4000;
@@ -42,37 +43,61 @@ export default function Index() {
   const insets = useSafeAreaInsets();
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const progressAnims = useRef(SLIDES.map(() => new Animated.Value(0))).current;
+  const animation = useRef<Animated.CompositeAnimation | null>(null);
 
-  const autoAdvance = (index: number) => {
-    if (index < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: index + 1, animated: true });
-      setCurrentIndex(index + 1);
-    }
-  };
+  const startProgressAnimation = (index: number) => {
+    if (animation.current) animation.current.stop();
 
-  useEffect(() => {
-    progressAnims.forEach((anim, i) => {
-      if (i < currentIndex) {
-        anim.setValue(1);
-      }
-    });
-
-    if (currentIndex === SLIDES.length - 1) {
-      
-      progressAnims[currentIndex].setValue(1);
-      return;
-    }
-
-    progressAnims[currentIndex].setValue(0);
-    Animated.timing(progressAnims[currentIndex], {
+    progressAnims[index].setValue(0);
+    animation.current = Animated.timing(progressAnims[index], {
       toValue: 1,
       duration: AUTO_SCROLL_INTERVAL,
       useNativeDriver: false,
-    }).start(({ finished }) => {
-      if (finished) autoAdvance(currentIndex);
     });
-  }, [currentIndex]);
+
+    animation.current.start(({ finished }) => {
+      if (finished && !paused) {
+        if (index < SLIDES.length - 1) {
+          flatListRef.current?.scrollToIndex({ index: index + 1, animated: true });
+          setCurrentIndex(index + 1);
+        }
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (!paused) {
+      startProgressAnimation(currentIndex);
+    }
+  }, [currentIndex, paused]);
+
+  const handlePress = () => {
+    if (currentIndex < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handleLongPress = () => {
+    setPaused(true);
+    if (animation.current) animation.current.stop();
+  };
+
+  const handlePressOut = () => {
+    setPaused(false);
+    startProgressAnimation(currentIndex);
+  };
+
+  const onPressButton = () => {
+    if (currentIndex < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: SLIDES.length - 1, animated: true });
+      setCurrentIndex(SLIDES.length - 1);
+    } else {
+      router.push("./dashboard");
+    }
+  };
 
   const onScroll = (event: any) => {
     const x = event.nativeEvent.contentOffset.x;
@@ -82,37 +107,27 @@ export default function Index() {
     }
   };
 
-  const onPressButton = () => {
-    if (currentIndex < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: SLIDES.length - 1, animated: true });
-      setCurrentIndex(SLIDES.length - 1);
-    } else {
-      router.push("./login");
-    }
-  };
-
-  const onNext = () => {
-    if (currentIndex < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
   const renderSlide = ({ item }: { item: typeof SLIDES[0] }) => (
-    <View style={styles.slide}>
-      <Image source={item.image} style={styles.illustration} resizeMode="contain" />
-      <View style={styles.textOverlay}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.description}>{item.description}</Text>
+    <TouchableWithoutFeedback
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      onPressOut={handlePressOut}
+      delayLongPress={200}
+    >
+      <View style={styles.slide}>
+        <Image source={item.image} style={styles.illustration} resizeMode="contain" />
+        <View style={styles.textOverlay}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.description}>{item.description}</Text>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 
   return (
     <>
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-
+      <StatusBar translucent backgroundColor="#000" barStyle="light-content" />
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
         <View style={[styles.progressContainer, { marginTop: insets.top + 8 }]}>
           {progressAnims.map((anim, idx) => (
             <View key={idx} style={styles.progressTrack}>
@@ -180,14 +195,10 @@ export default function Index() {
                 styles.button,
                 pressed && styles.buttonPressed,
               ]}
-              onPress={onNext}
+              onPress={handlePress}
             >
               <View style={styles.buttonContent}>
-                <MaterialIcons
-                  name="arrow-forward"
-                  size={22}
-                  color={COLORS.BACKGROUND}
-                />
+                <MaterialIcons name="arrow-forward" size={22} color={COLORS.BACKGROUND} />
                 <Text style={styles.buttonText}>NEXT</Text>
               </View>
             </Pressable>
@@ -225,10 +236,10 @@ const styles = StyleSheet.create({
   },
   logo: {
     position: "absolute",
-    top: 20,
+    top: 60,
     alignSelf: "center",
-    width: 300,
-    height: 170,
+    width: 100,
+    height: 70,
     zIndex: 999,
   },
   slide: {
