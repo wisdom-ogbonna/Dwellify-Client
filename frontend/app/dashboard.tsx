@@ -106,10 +106,10 @@ export default function HomeSearchScreen() {
                 style={styles.picker}
                 dropdownIconColor="gray"
               >
-                <Picker.Item label="Select Type" value="" />
-                <Picker.Item label="Self-contained" value="selfcontained" />
-                <Picker.Item label="1 Bedroom" value="1bedroom" />
-                <Picker.Item label="2 Bedroom" value="2bedroom" />
+                <Picker.Item style={styles.pickerItem} label="Select Type" value="" />
+                <Picker.Item style={styles.pickerItem} label="Self-contained" value="selfcontained" />
+                <Picker.Item style={styles.pickerItem} label="1 Bedroom" value="1bedroom" />
+                <Picker.Item style={styles.pickerItem} label="2 Bedroom" value="2bedroom" />
               </Picker>
             </View>
 
@@ -134,15 +134,15 @@ export default function HomeSearchScreen() {
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem}>
-            <Ionicons name="home" size={24} color={COLORS.PRIMARY} />
+            <Ionicons name="home" size={30} color={COLORS.PRIMARY} />
             <Text style={styles.navText}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Ionicons name="calendar-outline" size={24} color={COLORS.ICON_BG} />
+            <Ionicons name="calendar-outline" size={30} color={COLORS.ICON_BG} />
             <Text style={styles.navText}>Appointments</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Ionicons name="person-circle-outline" size={24} color={COLORS.ICON_BG} />
+            <Ionicons name="person-circle-outline" size={30} color={COLORS.ICON_BG} />
             <Text style={styles.navText}>Account</Text>
           </TouchableOpacity>
         </View>
@@ -165,13 +165,13 @@ const styles = StyleSheet.create({
   },
   hamburgerWrapper: {
     position: "absolute",
-    top: 60,
-    left: 20,
+    top: "7%",
+    left: "7%",
     zIndex: 999,
   },
   hamburgerCircle: {
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 22,
     justifyContent: "center",
@@ -189,14 +189,14 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   heading: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
     color: "#333",
   },
   label: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: "600",
     color: "#333",
     marginBottom: 6,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 22,
     marginLeft: 8,
     color: "#333",
   },
@@ -231,20 +231,20 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 22,
     color: "#333",
     marginLeft: 8,
   },
   searchButton: {
     backgroundColor: COLORS.PRIMARY,
-    paddingVertical: 18,
+    paddingVertical: 24,
     borderRadius: 10,
     alignItems: "center",
   },
   searchText: {
     color: COLORS.BACKGROUND,
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 22,
   },
   bottomNav: {
     flexDirection: "row",
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.BACKGROUND,
     borderTopWidth: 1,
     borderTopColor: "#eee",
-    paddingVertical: 10,
+    paddingVertical: 12,
     position: "absolute",
     bottom: 0,
     width: "100%",
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   navText: {
-    fontSize: 12,
+    fontSize: 16,
     color: COLORS.PRIMARY_TEXT,
     marginTop: 4,
   },
@@ -274,6 +274,8 @@ const styles = StyleSheet.create({
     width: width * 0.75,
     backgroundColor: "#fff",
     zIndex: 998,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
     elevation: 8,
     paddingTop: 80,
     paddingHorizontal: 20,
@@ -304,5 +306,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "rgba(0,0,0,0.3)",
     zIndex: 997,
+  },
+  pickerItem: {
+    fontSize: 22,
+    color: "#333",
   },
 });
