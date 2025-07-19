@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { COLORS } from "./constants/colors";
+import COLORS from "./constants/colors";
 
 const { width } = Dimensions.get("window");
 
