@@ -1,18 +1,19 @@
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
   Animated,
   Dimensions,
-  StatusBar
+  PanResponder,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, Feather } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
 import COLORS from "./constants/colors"; // Ensure path is correct
 
 const { width } = Dimensions.get("window");
@@ -37,6 +38,16 @@ export default function HomeSearchScreen() {
     console.log("Searching for:", houseType, location);
   };
 
+  // Swipe gesture to close sidebar
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderMove: (_, gestureState) => {
+      if (gestureState.dx < -20 && isSidebarVisible) {
+        toggleSidebar();
+      }
+    },
+  });
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
@@ -45,88 +56,98 @@ export default function HomeSearchScreen() {
         <TouchableOpacity style={styles.hamburgerWrapper} onPress={toggleSidebar}>
           <View style={styles.hamburgerCircle}>
             <Feather name="menu" size={24} color="#fff" />
-        </View>
-      </TouchableOpacity>
-
-      {/* Sidebar Menu */}
-      <Animated.View
-        style={[
-          styles.sidebar,
-          {
-            transform: [{ translateX: sidebarX }],
-          },
-        ]}
-      >
-        <View style={styles.sidebarContent}>
-          <Text style={styles.sidebarTitle}>Menu</Text>
-          <TouchableOpacity style={styles.sidebarItem}>
-            <Text style={styles.sidebarText}>Dashboard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarItem}>
-            <Text style={styles.sidebarText}>Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarItem}>
-            <Text style={styles.sidebarText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-
-      {/* Centered Form */}
-      <View style={styles.formContainer}>
-        <View style={styles.card}>
-          <Text style={styles.heading}>Find Your Home</Text>
-
-          <Text style={styles.label}>House Type</Text>
-          <View style={styles.pickerWrapper}>
-            <Ionicons name="home-outline" size={20} color="gray" />
-            <Picker
-              selectedValue={houseType}
-              onValueChange={(value) => setHouseType(value)}
-              style={styles.picker}
-              dropdownIconColor="gray"
-            >
-              <Picker.Item label="Select Type" value="" />
-              <Picker.Item label="Self-contained" value="selfcontained" />
-              <Picker.Item label="1 Bedroom" value="1bedroom" />
-              <Picker.Item label="2 Bedroom" value="2bedroom" />
-            </Picker>
           </View>
+        </TouchableOpacity>
 
-          <Text style={styles.label}>Location</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="location-outline" size={20} color="gray" />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter location"
-              placeholderTextColor="gray"
-              value={location}
-              onChangeText={setLocation}
-            />
+        {/* Overlay for dismissing sidebar */}
+        {isSidebarVisible && (
+          <TouchableOpacity
+            style={styles.overlay}
+            activeOpacity={1}
+            onPress={toggleSidebar}
+          />
+        )}
+
+        {/* Sidebar */}
+        <Animated.View
+          {...panResponder.panHandlers}
+          style={[
+            styles.sidebar,
+            {
+              transform: [{ translateX: sidebarX }],
+            },
+          ]}
+        >
+          <View style={styles.sidebarContent}>
+            <Text style={styles.sidebarTitle}>Menu</Text>
+            <TouchableOpacity style={styles.sidebarItem}>
+              <Text style={styles.sidebarText}>Dashboard</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.sidebarItem}>
+              <Text style={styles.sidebarText}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.sidebarItem}>
+              <Text style={styles.sidebarText}>Logout</Text>
+            </TouchableOpacity>
           </View>
+        </Animated.View>
 
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchText}>Search</Text>
+        {/* Search Form */}
+        <View style={styles.formContainer}>
+          <View style={styles.card}>
+            <Text style={styles.heading}>Find Your Home</Text>
+
+            <Text style={styles.label}>House Type</Text>
+            <View style={styles.pickerWrapper}>
+              <Ionicons name="home-outline" size={20} color="gray" />
+              <Picker
+                selectedValue={houseType}
+                onValueChange={(value) => setHouseType(value)}
+                style={styles.picker}
+                dropdownIconColor="gray"
+              >
+                <Picker.Item label="Select Type" value="" />
+                <Picker.Item label="Self-contained" value="selfcontained" />
+                <Picker.Item label="1 Bedroom" value="1bedroom" />
+                <Picker.Item label="2 Bedroom" value="2bedroom" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Location</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="location-outline" size={20} color="gray" />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter location"
+                placeholderTextColor="gray"
+                value={location}
+                onChangeText={setLocation}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+              <Text style={styles.searchText}>Search</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Bottom Navigation */}
+        <View style={styles.bottomNav}>
+          <TouchableOpacity style={styles.navItem}>
+            <Ionicons name="home" size={24} color={COLORS.PRIMARY} />
+            <Text style={styles.navText}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem}>
+            <Ionicons name="calendar-outline" size={24} color={COLORS.ICON_BG} />
+            <Text style={styles.navText}>Appointments</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem}>
+            <Ionicons name="person-circle-outline" size={24} color={COLORS.ICON_BG} />
+            <Text style={styles.navText}>Account</Text>
           </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={24} color={COLORS.PRIMARY} />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="calendar-outline" size={24} color={COLORS.ICON_BG} />
-          <Text style={styles.navText}>Appointments</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-circle-outline" size={24} color={COLORS.ICON_BG} />
-          <Text style={styles.navText}>Account</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-     </>
+      </SafeAreaView>
+    </>
   );
 }
 
@@ -175,7 +196,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "#333",
     marginBottom: 6,
@@ -193,7 +214,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 8,
     color: "#333",
   },
@@ -264,7 +285,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   sidebarTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
   },
@@ -274,5 +295,14 @@ const styles = StyleSheet.create({
   sidebarText: {
     fontSize: 22,
     color: "#333",
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    zIndex: 997,
   },
 });
