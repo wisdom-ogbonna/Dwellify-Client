@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
-  Animated,
   TouchableWithoutFeedback,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -17,7 +16,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import COLORS from "./constants/colors";
 
 const { width } = Dimensions.get("window");
-const AUTO_SCROLL_INTERVAL = 4000;
 
 const SLIDES = [
   {
@@ -41,53 +39,13 @@ export default function Index() {
   const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const progressAnims = useRef(SLIDES.map(() => new Animated.Value(0))).current;
-  const animation = useRef<Animated.CompositeAnimation | null>(null);
-
-  const startProgressAnimation = (index: number) => {
-    if (animation.current) animation.current.stop();
-
-    progressAnims[index].setValue(0);
-    animation.current = Animated.timing(progressAnims[index], {
-      toValue: 1,
-      duration: AUTO_SCROLL_INTERVAL,
-      useNativeDriver: false,
-    });
-
-    animation.current.start(({ finished }) => {
-      if (finished && !paused) {
-        if (index < SLIDES.length - 1) {
-          flatListRef.current?.scrollToIndex({ index: index + 1, animated: true });
-          setCurrentIndex(index + 1);
-        }
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (!paused) {
-      startProgressAnimation(currentIndex);
-    }
-  }, [currentIndex, paused]);
 
   const handlePress = () => {
     if (currentIndex < SLIDES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
       setCurrentIndex(currentIndex + 1);
     }
-  };
-
-  const handleLongPress = () => {
-    setPaused(true);
-    if (animation.current) animation.current.stop();
-  };
-
-  const handlePressOut = () => {
-    setPaused(false);
-    startProgressAnimation(currentIndex);
   };
 
   const onPressButton = () => {
@@ -108,12 +66,7 @@ export default function Index() {
   };
 
   const renderSlide = ({ item }: { item: typeof SLIDES[0] }) => (
-    <TouchableWithoutFeedback
-      onPress={handlePress}
-      onLongPress={handleLongPress}
-      onPressOut={handlePressOut}
-      delayLongPress={200}
-    >
+    <TouchableWithoutFeedback onPress={handlePress}>
       <View style={styles.slide}>
         <Image source={item.image} style={styles.illustration} resizeMode="contain" />
         <View style={styles.textOverlay}>
@@ -128,29 +81,27 @@ export default function Index() {
     <>
       <StatusBar translucent backgroundColor="#000" barStyle="light-content" />
       <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-        <View style={[styles.progressContainer, { marginTop: insets.top + 8 }]}>
-          {progressAnims.map((anim, idx) => (
-            <View key={idx} style={styles.progressTrack}>
-              <Animated.View
+
+        {/* Logo + Progress Dashes Row */}
+        <View style={styles.logoRow}>
+          <Image
+            source={require("../assets/images/dwellify-black-nobg.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+
+          <View style={styles.progressContainer}>
+            {[0, 1, 2].map((index) => (
+              <View
+                key={index}
                 style={[
-                  styles.progressBar,
-                  {
-                    width: anim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ["0%", "100%"],
-                    }),
-                  },
+                  styles.progressDot,
+                  currentIndex >= index && styles.progressDotActive,
                 ]}
               />
-            </View>
-          ))}
+            ))}
+          </View>
         </View>
-
-        <Image
-          source={require("../assets/images/dwellify-black-nobg.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
 
         <FlatList
           ref={flatListRef}
@@ -171,10 +122,7 @@ export default function Index() {
 
         <View style={[styles.controlDiv, { paddingBottom: insets.bottom + 16 }]}>
           <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              pressed && styles.buttonPressed,
-            ]}
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={onPressButton}
           >
             <View style={styles.buttonContent}>
@@ -191,10 +139,7 @@ export default function Index() {
 
           {currentIndex < SLIDES.length - 1 && (
             <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-              ]}
+              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
               onPress={handlePress}
             >
               <View style={styles.buttonContent}>
@@ -214,39 +159,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.BACKGROUND,
   },
-  progressContainer: {
+  logoRow: {
     flexDirection: "row",
-    width: width * 0.85,
-    height: 6,
-    alignSelf: "center",
-    position: "absolute",
-    zIndex: 999,
-  },
-  progressTrack: {
-    flex: 1,
-    backgroundColor: COLORS.INACTIVE_DOT,
-    marginHorizontal: 2,
-    borderRadius: 3,
-    overflow: "hidden",
-    height: 6,
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: COLORS.PRIMARY,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 5,
+    marginBottom: 20,
   },
   logo: {
-    position: "absolute",
-    top: 60,
-    alignSelf: "center",
     width: 100,
     height: 70,
-    zIndex: 999,
+  },
+  progressContainer: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  progressDot: {
+    width: 20,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#888",
+  },
+  progressDotActive: {
+    backgroundColor: COLORS.PRIMARY,
   },
   slide: {
     width,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 100,
     backgroundColor: COLORS.BACKGROUND,
     paddingHorizontal: 24,
   },
