@@ -8,6 +8,7 @@ import {
   Platform,
   Animated,
   Dimensions,
+  StatusBar
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -37,11 +38,13 @@ export default function HomeSearchScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Hamburger Button */}
-      <TouchableOpacity style={styles.hamburgerWrapper} onPress={toggleSidebar}>
-        <View style={styles.hamburgerCircle}>
-          <Feather name="menu" size={24} color="#fff" />
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <SafeAreaView style={styles.container}>
+        {/* Hamburger Button */}
+        <TouchableOpacity style={styles.hamburgerWrapper} onPress={toggleSidebar}>
+          <View style={styles.hamburgerCircle}>
+            <Feather name="menu" size={24} color="#fff" />
         </View>
       </TouchableOpacity>
 
@@ -123,6 +126,7 @@ export default function HomeSearchScreen() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+     </>
   );
 }
 
