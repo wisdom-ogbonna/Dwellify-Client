@@ -217,6 +217,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     marginLeft: 8,
     color: "#333",
+    borderWidth: 0,
+    outlineWidth: 0,
+    paddingVertical: Platform.OS === "ios" ? 12 : 10,
   },
   inputWrapper: {
     flexDirection: "row",
