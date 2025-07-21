@@ -2,232 +2,192 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
+  FlatList,
   TouchableOpacity,
-  Image,
-  ScrollView,
   StyleSheet,
-  ActivityIndicator,
+  Alert,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from 'expo-document-picker';
-import { Picker } from "@react-native-picker/picker";
-import COLORS from "./constants/colors";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather, AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router/build/exports";
 
-export default function AgentCreatePost() {
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [location, setLocation] = useState("");
-  const [price, setPrice] = useState("");
-  const [propertyType, setPropertyType] = useState("Apartment");
-  const [image, setImage] = useState<string | null>(null);
-  const [video, setVideo] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
-  const [loading, setLoading] = useState(false);
+// Sample mock property data
+const sampleProperties = [
+  {
+    id: "1",
+    title: "2 Bedroom Apartment",
+    status: "Available",
+    liked: false,
+  },
+  {
+    id: "2",
+    title: "Luxury Duplex",
+    status: "Taken",
+    liked: true,
+  },
+  {
+    id: "3",
+    title: "Studio Apartment",
+    status: "Available",
+    liked: false,
+  },
+  {
+    id: "4",
+    title: "Detached Bungalow",
+    status: "Available",
+    liked: false,
+  },
+];
 
-  const pickImage = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.8,
-    });
-    if (!res.canceled) {
-      setImage(res.assets[0].uri);
-    }
+const AgentDashboard = () => {
+  const [properties, setProperties] = useState(sampleProperties);
+
+  const deleteProperty = (id: string) => {
+    Alert.alert("Delete Property", "Are you sure?", [
+      { text: "Cancel" },
+      {
+        text: "Delete",
+        onPress: () =>
+          setProperties((prev) => prev.filter((item) => item.id !== id)),
+      },
+    ]);
   };
 
-
-  const handleVideoPick = async () => {
-    try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'video/*',
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-
-      if (res.assets && !res.canceled) {
-        setVideo(res.assets[0]);
-        console.log('Video URI:', res.assets[0].uri);
-      }
-    } catch (error) {
-      console.warn('Video pick failed:', error);
-    }
+  const toggleLike = (id: string) => {
+    setProperties((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, liked: !item.liked } : item
+      )
+    );
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert("Property posted successfully.");
-    }, 2000);
-  };
-
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Create Property Listing</Text>
-
-      <TextInput
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Location"
-        value={location}
-        onChangeText={setLocation}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Price (₦)"
-        value={price?.toString() ?? ""}
-        onChangeText={(text) => setPrice(text)}
-        keyboardType="numeric"
-        style={styles.input}
-      />
-
-
-      <TextInput
-        placeholder="Description"
-        value={desc}
-        onChangeText={setDesc}
-        style={[styles.input, { height: 100 }]}
-        multiline
-      />
-
-      <Text style={styles.label}>Property Type</Text>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={propertyType}
-          style={styles.picker}
-          dropdownIconColor="gray"
-          onValueChange={(value) => setPropertyType(value)}
+  const renderItem = ({ item }: { item: typeof sampleProperties[0] }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text
+          style={[
+            styles.status,
+            {
+              color: item.status === "Available" ? "green" : "gray",
+            },
+          ]}
         >
-          <Picker.Item label="Select Property Type" value="select-property-type" />
-          <Picker.Item label="Self-Contain" value="self-contain" />
-          <Picker.Item label="1 Bedroom Flat" value="1bedroomflat" />
-          <Picker.Item label="2 Bedroom Flat" value="2bedroomflat" />
-        </Picker>
+          {item.status}
+        </Text>
       </View>
 
-      <TouchableOpacity onPress={pickImage} style={styles.imageUploadBtn}>
-        <Text style={styles.uploadText}>
-          {image ? "Change Image" : "Upload Image"}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity onPress={() => toggleLike(item.id)}>
+          <AntDesign
+            name={item.liked ? "heart" : "hearto"}
+            size={24}
+            color={item.liked ? "red" : "black"}
+          />
+        </TouchableOpacity>
 
-      {image && (
-        <Image
-          source={{ uri: image }}
-          style={styles.previewImage}
-          resizeMode="cover"
-        />
-      )}
-
-      <TouchableOpacity style={styles.uploadBtn} onPress={handleVideoPick}>
-       <Text style={[styles.uploadText, { color: COLORS.PRIMARY }]}>Upload Video</Text>
-      </TouchableOpacity>
-
-      {video && (
-        <Text style={styles.videoInfo}>
-          Selected: {video.name}
-        </Text>
-      )}
-
-      <TouchableOpacity
-        onPress={handleSubmit}
-        style={styles.submitButton}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.submitText}>Post Property</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity onPress={() => deleteProperty(item.id)}>
+          <MaterialIcons name="delete" size={24} color="darkred" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
-}
+
+  return (
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push("/createProperty")} // routes to createProperty screen
+        >
+          <Feather name="plus-circle" size={24} color="#fff" />
+          <Text style={styles.addText}>Add Property for Rent</Text>
+        </TouchableOpacity>
+
+        <FlatList
+          data={properties.slice(0, 4)} // show only 4
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 80 }}
+          ListEmptyComponent={<Text>No properties yet.</Text>}
+        />
+      </View>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => router.push("/AgentDashboard")}>
+          <Ionicons name="home-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/createProperty")}>
+          <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert("Settings coming soon!")}>
+          <Ionicons name="settings-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default AgentDashboard;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
+  safeContainer: {
+    flex: 1,
     backgroundColor: "#fff",
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: "600",
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#007AFF",
+    padding: 12,
+    borderRadius: 10,
     marginBottom: 20,
   },
-  label: {
-    fontWeight: "500",
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  addText: {
+    color: "#fff",
+    fontWeight: "bold",
+    marginLeft: 10,
     fontSize: 16,
+  },
+  card: {
+    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 14,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 16,
+  title: {
+    fontWeight: "bold",
+    fontSize: 18,
   },
-  picker: {
-    width: "100%",
-    fontSize: 16,
-    color: "#333",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  imageUploadBtn: {
-    backgroundColor: COLORS.PRIMARY,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: "center",
-  },
-  uploadText: {
-    color: "#fff",
-    fontWeight: "500",
-  },
-  previewImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  submitButton: {
-    backgroundColor: "#222",
-    padding: 14,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  submitText: {
-    color: "#fff",
-    fontSize: 16,
+  status: {
     fontWeight: "600",
   },
-  uploadBtn: {
-    backgroundColor: COLORS.BACKGROUND,
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: "center",
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 16,
   },
-  videoInfo: {
-    marginVertical: 10,
-    textAlign: "center",
-    fontSize: 16,
-    color: '#333',
+  bottomNav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#f0f0f0",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
   },
 });

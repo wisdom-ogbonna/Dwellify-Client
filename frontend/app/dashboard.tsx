@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from "./constants/colors"; // Ensure path is correct
+import COLORS from "./constants/colors";
 
 const { width } = Dimensions.get("window");
 
