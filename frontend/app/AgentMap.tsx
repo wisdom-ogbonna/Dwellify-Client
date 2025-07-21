@@ -4,8 +4,9 @@
 
 // const { width } = Dimensions.get('window');
 
-// export default function agentMap() {
-//   return (
+ export default function agentMap() {
+   return (
+    <></>
 //     <View style={styles.container}>
 //       {/* Map */}
 //       <MapView
@@ -46,8 +47,8 @@
 //         </View>
 //       </View>
 //     </View>
-//   );
-// }
+   );
+ }
 
 // const styles = StyleSheet.create({
 //   container: {

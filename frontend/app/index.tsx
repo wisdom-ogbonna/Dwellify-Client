@@ -53,7 +53,7 @@ export default function Index() {
       flatListRef.current?.scrollToIndex({ index: SLIDES.length - 1, animated: true });
       setCurrentIndex(SLIDES.length - 1);
     } else {
-      router.push("./dashboard");
+      router.push("./AgentDashboard");
     }
   };
 
